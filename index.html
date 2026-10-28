@@ -41,3 +41,465 @@ async function sendMove(from,to){try{const s=await api("move",{playerId,from,to}
 async function shareRoom(){if(!roomCode){say("Cipta atau sertai bilik dahulu.");return;}const link=location.origin+location.pathname+"?room="+encodeURIComponent(roomCode);try{if(navigator.share)await navigator.share({title:"Dam Haji Online",text:"Sertai bilik "+roomCode,url:link});else if(navigator.clipboard){await navigator.clipboard.writeText(link);say("Pautan bilik telah disalin.");}else say("Kongsi kod bilik: "+roomCode);}catch(e){say("Kod bilik: "+roomCode);}}
 setMode("local");const sharedRoom=new URLSearchParams(location.search).get("room");if(sharedRoom){setMode("online");el("roomInput").value=sharedRoom.toUpperCase();say("Tekan Sertai Bilik untuk bermain bersama rakan.");}
 </script></body></html>
+<style>
+#celebrate {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 99;
+}
+.fall {
+  position: absolute;
+  top: -15%;
+  font-size: 28px;
+  animation: falling 5s linear forwards;
+}
+@keyframes falling {
+  to { transform: translateY(125vh) rotate(720deg); }
+}
+.winner-glow {
+  animation: victoryGlow .4s alternate 8;
+}
+@keyframes victoryGlow {
+  to { box-shadow: 0 0 45px 18px gold; }
+}
+</style>
+
+<div id="celebrate"></div>
+
+<script>
+"use strict";
+
+/* PERATURAN DAM ANTARABANGSA 10x10 */
+
+const directions = [
+  [-1,-1], [-1,1], [1,-1], [1,1]
+];
+
+const copyBoard = b => b.map(row => row.slice());
+
+function capturePaths(b,r,c) {
+  const p = b[r][c];
+  const color = pieceColor(p);
+  const out = [];
+
+  for (const [dr,dc] of directions) {
+
+    if (isKing(p)) {
+      let x = r+dr, y = c+dc;
+      let enemy = null;
+
+      while (inside(x,y)) {
+        const q = b[x][y];
+
+        if (q) {
+          if (pieceColor(q)===color || enemy) break;
+          enemy = [x,y];
+        }
+        else if (enemy) {
+          const next = copyBoard(b);
+
+          next[r][c] = null;
+          next[enemy[0]][enemy[1]] = null;
+          next[x][y] = p;
+
+          const tails = capturePaths(next,x,y);
+
+          if (tails.length) {
+            for (const t of tails) {
+              out.push({
+                path:[[x,y],...t.path],
+                taken:[enemy,...t.taken]
+              });
+            }
+          } else {
+            out.push({
+              path:[[x,y]],
+              taken:[enemy]
+            });
+          }
+        }
+
+        x += dr;
+        y += dc;
+      }
+    }
+    else {
+      const x = r+dr, y = c+dc;
+      const z = x+dr, w = y+dc;
+
+      if (
+        inside(z,w) &&
+        pieceColor(b[x][y]) ===
+          (color==="red" ? "black" : "red") &&
+        !b[z][w]
+      ) {
+        const next = copyBoard(b);
+
+        next[r][c] = null;
+        next[x][y] = null;
+        next[z][w] = p;
+
+        const tails = capturePaths(next,z,w);
+
+        if (tails.length) {
+          for (const t of tails) {
+            out.push({
+              path:[[z,w],...t.path],
+              taken:[[x,y],...t.taken]
+            });
+          }
+        } else {
+          out.push({
+            path:[[z,w]],
+            taken:[[x,y]]
+          });
+        }
+      }
+    }
+  }
+
+  return out;
+}
+
+function allLegal(color) {
+  const captures = [];
+  const simple = [];
+
+  for (let r=0;r<10;r++) {
+    for (let c=0;c<10;c++) {
+      const p = board[r][c];
+
+      if (pieceColor(p)!==color) continue;
+
+      for (const m of capturePaths(board,r,c)) {
+        captures.push({
+          from:[r,c],
+          ...m
+        });
+      }
+
+      if (isKing(p)) {
+        for (const [dr,dc] of directions) {
+          let x=r+dr, y=c+dc;
+
+          while (inside(x,y) && !board[x][y]) {
+            simple.push({
+              from:[r,c],
+              path:[[x,y]],
+              taken:[]
+            });
+
+            x+=dr;
+            y+=dc;
+          }
+        }
+      }
+      else {
+        const dr = color==="red" ? -1 : 1;
+
+        for (const dc of [-1,1]) {
+          const x=r+dr, y=c+dc;
+
+          if (inside(x,y) && !board[x][y]) {
+            simple.push({
+              from:[r,c],
+              path:[[x,y]],
+              taken:[]
+            });
+          }
+        }
+      }
+    }
+  }
+
+  if (captures.length) {
+    const max = Math.max(
+      ...captures.map(m=>m.taken.length)
+    );
+
+    return captures.filter(
+      m=>m.taken.length===max
+    );
+  }
+
+  return simple;
+}
+
+possibleMoves = function(r,c) {
+  const color = pieceColor(board[r]?.[c]);
+
+  if (!color) return [];
+
+  return allLegal(color)
+    .filter(m =>
+      m.from[0]===r &&
+      m.from[1]===c
+    )
+    .map(m => ({
+      r:m.path.at(-1)[0],
+      c:m.path.at(-1)[1],
+      ...m
+    }));
+};
+
+/* PERGERAKAN DAN KEMENANGAN */
+
+function finishMove(m) {
+  const [r,c] = m.from;
+  const [rr,cc] = m.path.at(-1);
+
+  let p = board[r][c];
+  const color = pieceColor(p);
+
+  board[r][c] = null;
+
+  for (const [x,y] of m.taken) {
+    board[x][y] = null;
+  }
+
+  if (
+    !isKing(p) &&
+    rr === (color==="red" ? 0 : 9)
+  ) {
+    p = color+"-king";
+  }
+
+  board[rr][cc] = p;
+
+  turn = color==="red" ? "black" : "red";
+  selected = null;
+  hints = [];
+
+  beep();
+
+  if (!allLegal(turn).length) {
+    winner = color;
+    celebrate();
+  } else {
+    say("Langkah berjaya.");
+  }
+
+  updateStatus();
+  render();
+}
+
+function celebrate() {
+  if (!winner) return;
+
+  const stage = document.getElementById("celebrate");
+
+  stage.replaceChildren();
+
+  el("board").classList.add("winner-glow");
+
+  setTimeout(() => {
+    el("board").classList.remove("winner-glow");
+  },3500);
+
+  const icons = [
+    "🎈","🎊","🎉","🟡","🟣","🔴","🟢"
+  ];
+
+  for (let i=0;i<75;i++) {
+    const d = document.createElement("span");
+
+    d.className = "fall";
+    d.textContent =
+      icons[Math.floor(Math.random()*icons.length)];
+
+    d.style.left = Math.random()*100+"%";
+    d.style.animationDelay = Math.random()*2+"s";
+    d.style.animationDuration =
+      3+Math.random()*3+"s";
+
+    stage.appendChild(d);
+  }
+
+  setTimeout(() => {
+    stage.replaceChildren();
+  },8000);
+
+  beep(true);
+  say("🏆 Tahniah! Hebatnya, anda menang!");
+
+  if (
+    soundOn &&
+    "speechSynthesis" in window
+  ) {
+    setTimeout(() => {
+      const voice = new SpeechSynthesisUtterance(
+        "Tahniah! Hebatnya, anda menang!"
+      );
+
+      voice.lang = "ms-MY";
+      voice.volume = 0.35;
+      voice.rate = 1.05;
+
+      speechSynthesis.speak(voice);
+    },450);
+  }
+}
+
+/* KAWALAN PEMAIN */
+
+clickCell = function(r,c) {
+  if (!board.length || winner) return;
+
+  if (
+    mode==="online" &&
+    (!playerId || turn!==myColor)
+  ) {
+    say("Tunggu giliran atau sertai bilik dahulu.");
+    return;
+  }
+
+  if (mode==="computer" && turn==="black") return;
+
+  const color = mode==="online" ? myColor : turn;
+
+  if (selected) {
+    const m = hints.find(
+      m=>m.r===r && m.c===c
+    );
+
+    if (m) {
+      selected = null;
+      hints = [];
+
+      if (mode==="online") {
+        sendMove(m.from,m.path);
+      } else {
+        finishMove(m);
+
+        if (
+          mode==="computer" &&
+          !winner &&
+          turn==="black"
+        ) {
+          setTimeout(computerMove,450);
+        }
+      }
+      return;
+    }
+  }
+
+  if (pieceColor(board[r][c])===color) {
+    selected = [r,c];
+    hints = possibleMoves(r,c);
+
+    say(
+      hints.length
+        ? "Pilih petak hijau."
+        : "Buah ini tidak boleh bergerak."
+    );
+  } else {
+    selected = null;
+    hints = [];
+  }
+
+  render();
+};
+
+/* LAWAN KOMPUTER */
+
+computerMove = function() {
+  if (
+    mode!=="computer" ||
+    turn!=="black" ||
+    winner
+  ) return;
+
+  const all = allLegal("black");
+
+  if (!all.length) {
+    winner = "red";
+    updateStatus();
+    render();
+    celebrate();
+    return;
+  }
+
+  const captures = all.filter(
+    m=>m.taken.length
+  );
+
+  const pool = captures.length ? captures : all;
+
+  const m = pool[
+    Math.floor(Math.random()*pool.length)
+  ];
+
+  finishMove(m);
+};
+
+/* DUA PERANTI ONLINE */
+
+sendMove = async function(from,path) {
+  try {
+    const s = await api("move",{
+      playerId,
+      from,
+      path
+    });
+
+    board = s.board;
+    turn = s.turn;
+    winner = s.winner;
+
+    beep();
+    updateStatus();
+    render();
+
+    if (winner) celebrate();
+    else say("Langkah berjaya.");
+  }
+  catch(e) {
+    say(e.message);
+    refreshRoom();
+  }
+};
+
+refreshRoom = async function() {
+  if (!playerId) return;
+
+  try {
+    const s = await api("state");
+    const newWin = s.winner && !winner;
+
+    board = s.board;
+    turn = s.turn;
+    winner = s.winner;
+    selected = null;
+    hints = [];
+
+    updateStatus();
+    render();
+
+    if (newWin) {
+      celebrate();
+    }
+    else if (s.players<2) {
+      say("Menunggu pemain kedua...");
+    }
+    else if (!winner) {
+      say("Dua pemain telah bersambung.");
+    }
+  }
+  catch(e) {
+    say("Sambungan terganggu: "+e.message);
+  }
+};
+
+/* KEMAS KINI PERATURAN PAPARAN */
+
+document.querySelector(".panel.small p").textContent =
+  "Buah biasa bergerak menyerong ke hadapan " +
+  "dan boleh makan ke hadapan atau belakang. " +
+  "Buah Haji bergerak jauh menyerong dalam " +
+  "empat arah. Wajib makan bilangan maksimum.";
+
+setMode("local");
+
+</script>
