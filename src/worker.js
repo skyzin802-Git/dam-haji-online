@@ -506,4 +506,10 @@ export default {
     }
 
     const id =
-      env
+      env .GAME_ROOMS.idFromName(match[1]);
+
+return env.GAME_ROOMS
+  .get(id)
+  .fetch(request);
+  }
+};
