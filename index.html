@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#12683c">
+<title>Dam Haji Digital 10×10</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(#0d633c, #06351f);
+  color: white;
+  text-align: center;
+}
+
+header {
+  max-width: 700px;
+  margin: auto;
+  padding: 10px;
+}
+
+.logo {
+  display: block;
+  width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+  border-radius: 15px;
+}
+
+h1 {
+  font-size: 25px;
+  margin: 12px 0 5px;
+  color: #ffdf63;
+}
+
+.subtitle {
+  margin: 0 0 12px;
+  font-size: 14px;
+}
+
+main {
+  width: min(96%, 650px);
+  margin: auto;
+  padding-bottom: 30px;
+}
+
+.panel {
+  background: #ffffff18;
+  border: 1px solid #ffffff35;
+  border-radius: 15px;
+  padding: 12px;
+  margin: 12px 0;
+}
+
+button {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 15px;
+  margin: 4px;
+  font-size: 15px;
+  font-weight: bold;
+  background: #ffce45;
+  color: #302000;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: .45;
+}
+
+button.active {
+  background: #36db8b;
+}
+
+input {
+  width: 150px;
+  max-width: 90%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+#board {
+  width: min(94vw, 560px);
+  aspect-ratio: 1;
+  margin: 15px auto;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  border: 7px solid #a96a27;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 8px 25px #0008;
+}
+
+.cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+}
+
+.light {
+  background: #ffe3a5;
+}
+
+.dark {
+  background: #925121;
+}
+
+.cell.selected {
+  outline: 3px solid #25ff7b;
+  outline-offset: -3px;
+}
+
+.cell.hint::after {
+  content: "";
+  position: absolute;
+  width: 25%;
+  height: 25%;
+  border-radius: 50%;
+  background: #39ff75;
+}
+
+.piece {
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  border: 2px solid #ffffff88;
+  box-shadow: inset 0 3px 5px #ffffff55,
+              0 3px 4px #0008;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(12px, 3vw, 25px);
+}
+
+.red {
+  background: radial-gradient(circle at 30% 25%, #ff9c9c, #d90000 70%);
+}
+
+.black {
+  background: radial-gradient(circle at 30% 25%, #999, #111 70%);
+}
+
+.king::before {
+  content: "♛";
+  color: #ffdb42;
+  text-shadow: 1px 1px #000;
+}
+
+#status {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffeb79;
+  min-height: 25px;
+}
+
+#message {
+  min-height: 25px;
+  font-size: 14px;
+}
+
+.small {
+  font-size: 13px;
+  opacity: .9;
+}
+
+.hidden {
+  display: none;
+}
+
+footer {
+  padding: 15px;
+  font-size: 12px;
+  opacity: .8;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <img
+    class="logo"
+    src="logo-dam-haji.jpg"
+    alt="Logo Rasmi Dam Haji Digital 10x10"
+  >
+
+  <h1>DAM HAJI DIGITAL 10×10</h1>
+  <p class="subtitle">
+    Permainan Tradisional, Kini Lebih Menarik
+  </p>
+</header>
+
+<main>
+
+<section class="panel">
+  <h3>Pilih Cara Bermain</h3>
+
+  <button onclick="setMode('local')">
+    👥 1 Peranti
+  </button>
+
+  <button onclick="setMode('online')">
+    📱 2 Peranti Online
+  </button>
+
+  <button onclick="setMode('computer')">
+    🤖 Lawan Komputer
+  </button>
+</section>
+
+<section id="onlinePanel" class="panel hidden">
+  <h3>Bilik Permainan Online</h3>
+
+  <button onclick="createRoom()">
+    Cipta Bilik
+  </button>
+
+  <br>
+
+  <input
+    id="roomInput"
+    placeholder="KOD BILIK"
+    maxlength="40"
+  >
+
+  <button onclick="joinRoom()">
+    Sertai Bilik
+  </button>
+
+  <p id="roomInfo" class="small"></p>
+
+  <button onclick="shareRoom()">
+    Kongsi Kod Bilik
+  </button>
+</section>
+
+<section class="panel">
+  <div id="status">Pilih cara bermain</div>
+  <p id="message"></p>
+</section>
+
+<div id="board"></div>
+
+<section class="panel">
+  <button onclick="newGame()">🔄 Permainan Baharu</button>
+  <button onclick="toggleSound()" id="soundBtn">
+    🔊 Bunyi ON
+  </button>
+</section>
+
+<section class="panel small">
+  <strong>Peraturan Dam Haji</strong>
+  <p>
+    Buah biasa bergerak dan makan secara menyerong ke hadapan.
+    Buah Haji boleh bergerak jauh secara menyerong dan menegak.
+    Makan tidak diwajibkan.
+  </p>
+</section>
+
+</main>
+
+<footer>
+  DAM HAJI DIGITAL • 10×10
+</footer>
+
+<script>
+"use strict";
+
+const API =
+  "https://dam-haji-online.danaumas802.workers.dev";
+
+const SIZE = 10;
+
+let mode = "local";
+let board = [];
+let turn = "red";
+let selected = null;
+let hints = [];
+let winner = null;
+
+let roomCode = "";
+let playerId = "";
+let myColor = "";
+let polling = null;
+let soundOn = true;
+
+function initialBoard() {
+  return Array.from({length: SIZE}, (_, r) =>
+    Array.from({length: SIZE}, (_, c) => {
+      if ((r + c) % 2 !== 1) return null;
+      if (r < 4) return "black";
+      if (r > 5) return "red";
+      return null;
+    })
+  );
+}
+
+function pieceColor(piece) {
+  if (!piece) return null;
+  return piece.startsWith("red") ? "red" : "black";
+}
+
+function isKing(piece) {
+  return !!piece && (
+    piece.includes("king") ||
+    piece.includes("haji")
+  );
+}
+
+function inside(r, c) {
+  return r >= 0 && r < SIZE &&
+         c >= 0 && c < SIZE;
+}
+
+function directions(piece) {
+  if (isKing(piece)) {
+    return [
+      [-1,-1], [-1,1],
+      [1,-1], [1,1],
+      [-1,0], [1,0]
+    ];
+  }
+
+  const d = pieceColor(piece) === "red" ? -1 : 1;
+
+  return [[d,-1], [d,1]];
+}
+
+function possibleMoves(r, c)
