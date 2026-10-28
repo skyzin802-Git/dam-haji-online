@@ -486,17 +486,8 @@ export default {
     );
 
     if (!match) {
-      return json({
-        app: 'Dam Haji Online 10x10',
-        status: 'Pelayan aktif',
-        endpoints: [
-          '/room/KOD/join',
-          '/room/KOD/state',
-          '/room/KOD/move',
-          '/room/KOD/reset'
-        ]
-      });
-    }
+  return env.ASSETS.fetch(request);
+}
 
     if (!env.GAME_ROOMS) {
       return json({
