@@ -1,6 +1,11 @@
 {
   "name": "dam-haji-online",
   "main": "src/worker.js",
+"assets": {
+  "directory": "./",
+  "binding": "ASSETS",
+  "run_worker_first": true
+},
   "compatibility_date": "2026-10-28",
   "durable_objects": {
     "bindings": [
