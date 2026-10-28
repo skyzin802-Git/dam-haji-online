@@ -1,341 +1,43 @@
 <!DOCTYPE html>
-<html lang="ms">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#12683c">
-<title>Dam Haji Digital 10×10</title>
-
+<html lang="ms"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#12683c"><title>Dam Haji Digital 10×10</title>
 <style>
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(#0d633c, #06351f);
-  color: white;
-  text-align: center;
-}
-
-header {
-  max-width: 700px;
-  margin: auto;
-  padding: 10px;
-}
-
-.logo {
-  display: block;
-  width: 100%;
-  max-height: 300px;
-  object-fit: contain;
-  border-radius: 15px;
-}
-
-h1 {
-  font-size: 25px;
-  margin: 12px 0 5px;
-  color: #ffdf63;
-}
-
-.subtitle {
-  margin: 0 0 12px;
-  font-size: 14px;
-}
-
-main {
-  width: min(96%, 650px);
-  margin: auto;
-  padding-bottom: 30px;
-}
-
-.panel {
-  background: #ffffff18;
-  border: 1px solid #ffffff35;
-  border-radius: 15px;
-  padding: 12px;
-  margin: 12px 0;
-}
-
-button {
-  border: none;
-  border-radius: 10px;
-  padding: 12px 15px;
-  margin: 4px;
-  font-size: 15px;
-  font-weight: bold;
-  background: #ffce45;
-  color: #302000;
-  cursor: pointer;
-}
-
-button:disabled {
-  opacity: .45;
-}
-
-button.active {
-  background: #36db8b;
-}
-
-input {
-  width: 150px;
-  max-width: 90%;
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  text-transform: uppercase;
-}
-
-#board {
-  width: min(94vw, 560px);
-  aspect-ratio: 1;
-  margin: 15px auto;
-  display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  border: 7px solid #a96a27;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 8px 25px #0008;
-}
-
-.cell {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
-  min-height: 0;
-}
-
-.light {
-  background: #ffe3a5;
-}
-
-.dark {
-  background: #925121;
-}
-
-.cell.selected {
-  outline: 3px solid #25ff7b;
-  outline-offset: -3px;
-}
-
-.cell.hint::after {
-  content: "";
-  position: absolute;
-  width: 25%;
-  height: 25%;
-  border-radius: 50%;
-  background: #39ff75;
-}
-
-.piece {
-  width: 80%;
-  height: 80%;
-  border-radius: 50%;
-  border: 2px solid #ffffff88;
-  box-shadow: inset 0 3px 5px #ffffff55,
-              0 3px 4px #0008;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(12px, 3vw, 25px);
-}
-
-.red {
-  background: radial-gradient(circle at 30% 25%, #ff9c9c, #d90000 70%);
-}
-
-.black {
-  background: radial-gradient(circle at 30% 25%, #999, #111 70%);
-}
-
-.king::before {
-  content: "♛";
-  color: #ffdb42;
-  text-shadow: 1px 1px #000;
-}
-
-#status {
-  font-size: 18px;
-  font-weight: bold;
-  color: #ffeb79;
-  min-height: 25px;
-}
-
-#message {
-  min-height: 25px;
-  font-size: 14px;
-}
-
-.small {
-  font-size: 13px;
-  opacity: .9;
-}
-
-.hidden {
-  display: none;
-}
-
-footer {
-  padding: 15px;
-  font-size: 12px;
-  opacity: .8;
-}
-</style>
-</head>
-
-<body>
-
-<header>
-  <img
-    class="logo"
-    src="logo-dam-haji.jpg"
-    alt="Logo Rasmi Dam Haji Digital 10x10"
-  >
-
-  <h1>DAM HAJI DIGITAL 10×10</h1>
-  <p class="subtitle">
-    Permainan Tradisional, Kini Lebih Menarik
-  </p>
-</header>
-
-<main>
-
-<section class="panel">
-  <h3>Pilih Cara Bermain</h3>
-
-  <button onclick="setMode('local')">
-    👥 1 Peranti
-  </button>
-
-  <button onclick="setMode('online')">
-    📱 2 Peranti Online
-  </button>
-
-  <button onclick="setMode('computer')">
-    🤖 Lawan Komputer
-  </button>
-</section>
-
-<section id="onlinePanel" class="panel hidden">
-  <h3>Bilik Permainan Online</h3>
-
-  <button onclick="createRoom()">
-    Cipta Bilik
-  </button>
-
-  <br>
-
-  <input
-    id="roomInput"
-    placeholder="KOD BILIK"
-    maxlength="40"
-  >
-
-  <button onclick="joinRoom()">
-    Sertai Bilik
-  </button>
-
-  <p id="roomInfo" class="small"></p>
-
-  <button onclick="shareRoom()">
-    Kongsi Kod Bilik
-  </button>
-</section>
-
-<section class="panel">
-  <div id="status">Pilih cara bermain</div>
-  <p id="message"></p>
-</section>
-
-<div id="board"></div>
-
-<section class="panel">
-  <button onclick="newGame()">🔄 Permainan Baharu</button>
-  <button onclick="toggleSound()" id="soundBtn">
-    🔊 Bunyi ON
-  </button>
-</section>
-
-<section class="panel small">
-  <strong>Peraturan Dam Haji</strong>
-  <p>
-    Buah biasa bergerak dan makan secara menyerong ke hadapan.
-    Buah Haji boleh bergerak jauh secara menyerong dan menegak.
-    Makan tidak diwajibkan.
-  </p>
-</section>
-
-</main>
-
-<footer>
-  DAM HAJI DIGITAL • 10×10
-</footer>
-
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(#0d633c,#06351f);color:white;text-align:center}header{max-width:700px;margin:auto;padding:10px}.logo{display:block;width:100%;max-height:300px;object-fit:contain;border-radius:15px}h1{font-size:25px;margin:12px 0 5px;color:#ffdf63}.subtitle{margin:0 0 12px;font-size:14px}main{width:min(96%,650px);margin:auto;padding-bottom:30px}.panel{background:#ffffff18;border:1px solid #ffffff35;border-radius:15px;padding:12px;margin:12px 0}button{border:0;border-radius:10px;padding:12px 15px;margin:4px;font-size:15px;font-weight:bold;background:#ffce45;color:#302000;cursor:pointer}button:disabled{opacity:.45}button.active{background:#36db8b}input{width:150px;max-width:90%;padding:12px;border:0;border-radius:8px;font-size:16px;text-transform:uppercase}#board{width:min(94vw,560px);aspect-ratio:1;margin:15px auto;display:grid;grid-template-columns:repeat(10,1fr);border:7px solid #a96a27;border-radius:8px;overflow:hidden;box-shadow:0 8px 25px #0008}.cell{position:relative;display:flex;align-items:center;justify-content:center;min-width:0;min-height:0}.light{background:#ffe3a5}.dark{background:#925121}.cell.selected{outline:3px solid #25ff7b;outline-offset:-3px}.cell.hint::after{content:"";position:absolute;width:25%;height:25%;border-radius:50%;background:#39ff75}.piece{width:80%;height:80%;border-radius:50%;border:2px solid #ffffff88;box-shadow:inset 0 3px 5px #ffffff55,0 3px 4px #0008;display:flex;align-items:center;justify-content:center;font-size:clamp(12px,3vw,25px)}.red{background:radial-gradient(circle at 30% 25%,#ff9c9c,#d90000 70%)}.black{background:radial-gradient(circle at 30% 25%,#999,#111 70%)}.king::before{content:"♛";color:#ffdb42;text-shadow:1px 1px #000}#status{font-size:18px;font-weight:bold;color:#ffeb79;min-height:25px}#message{min-height:25px;font-size:14px}.small{font-size:13px;opacity:.9}.hidden{display:none}footer{padding:15px;font-size:12px;opacity:.8}
+</style></head><body>
+<header><img class="logo" src="logo-dam-haji.jpg" alt="Logo Rasmi Dam Haji Digital 10x10"><h1>DAM HAJI DIGITAL 10×10</h1><p class="subtitle">Permainan Tradisional, Kini Lebih Menarik</p></header>
+<main><section class="panel"><h3>Pilih Cara Bermain</h3><button onclick="setMode('local')">👥 1 Peranti</button><button onclick="setMode('online')">📱 2 Peranti Online</button><button onclick="setMode('computer')">🤖 Lawan Komputer</button></section>
+<section id="onlinePanel" class="panel hidden"><h3>Bilik Permainan Online</h3><button onclick="createRoom()">Cipta Bilik</button><br><input id="roomInput" placeholder="KOD BILIK" maxlength="40"><button onclick="joinRoom()">Sertai Bilik</button><p id="roomInfo" class="small"></p><button onclick="shareRoom()">Kongsi Kod Bilik</button></section>
+<section class="panel"><div id="status">Pilih cara bermain</div><p id="message"></p></section><div id="board"></div>
+<section class="panel"><button onclick="newGame()">🔄 Permainan Baharu</button><button onclick="toggleSound()" id="soundBtn">🔊 Bunyi ON</button></section>
+<section class="panel small"><strong>Peraturan Dam Haji</strong><p>Buah biasa bergerak dan makan secara menyerong ke hadapan. Buah Haji boleh bergerak jauh secara menyerong dan menegak. Makan tidak diwajibkan.</p></section></main><footer>DAM HAJI DIGITAL • 10×10</footer>
 <script>
 "use strict";
-
-const API =
-  "https://dam-haji-online.danaumas802.workers.dev";
-
-const SIZE = 10;
-
-let mode = "local";
-let board = [];
-let turn = "red";
-let selected = null;
-let hints = [];
-let winner = null;
-
-let roomCode = "";
-let playerId = "";
-let myColor = "";
-let polling = null;
-let soundOn = true;
-
-function initialBoard() {
-  return Array.from({length: SIZE}, (_, r) =>
-    Array.from({length: SIZE}, (_, c) => {
-      if ((r + c) % 2 !== 1) return null;
-      if (r < 4) return "black";
-      if (r > 5) return "red";
-      return null;
-    })
-  );
-}
-
-function pieceColor(piece) {
-  if (!piece) return null;
-  return piece.startsWith("red") ? "red" : "black";
-}
-
-function isKing(piece) {
-  return !!piece && (
-    piece.includes("king") ||
-    piece.includes("haji")
-  );
-}
-
-function inside(r, c) {
-  return r >= 0 && r < SIZE &&
-         c >= 0 && c < SIZE;
-}
-
-function directions(piece) {
-  if (isKing(piece)) {
-    return [
-      [-1,-1], [-1,1],
-      [1,-1], [1,1],
-      [-1,0], [1,0]
-    ];
-  }
-
-  const d = pieceColor(piece) === "red" ? -1 : 1;
-
-  return [[d,-1], [d,1]];
-}
-
-function possibleMoves(r, c)
+const API="https://dam-haji-online.danaumas802.workers.dev";
+const SIZE=10;
+let mode="local",board=[],turn="red",selected=null,hints=[],winner=null,roomCode="",playerId="",myColor="",polling=null,soundOn=true;
+function initialBoard(){return Array.from({length:SIZE},(_,r)=>Array.from({length:SIZE},(_,c)=>(r+c)%2!==1?null:r<4?"black":r>5?"red":null));}
+function pieceColor(p){return !p?null:p.startsWith("red")?"red":"black";}
+function isKing(p){return !!p&&(p.includes("king")||p.includes("haji"));}
+function inside(r,c){return r>=0&&r<SIZE&&c>=0&&c<SIZE;}
+function validateMove(from,to,color){const [r,c]=from,[rr,cc]=to;if(!inside(r,c)||!inside(rr,cc)||(r===rr&&c===cc))return {ok:false};const p=board[r][c];if(pieceColor(p)!==color||board[rr][cc])return {ok:false};const dr=rr-r,dc=cc-c,ar=Math.abs(dr),ac=Math.abs(dc);if(!isKing(p)){const d=color==="red"?-1:1;if(dr===d&&ac===1)return {ok:true,captures:[]};if(dr===2*d&&ac===2){const mr=r+d,mc=c+Math.sign(dc);if(board[mr][mc]&&pieceColor(board[mr][mc])!==color)return {ok:true,captures:[[mr,mc]]};}return {ok:false};}if(!(ar===ac||(dc===0&&ar>0)))return {ok:false};const sr=Math.sign(dr),sc=Math.sign(dc),captures=[];for(let i=1;i<Math.max(ar,ac);i++){const pr=r+i*sr,pc=c+i*sc,q=board[pr][pc];if(!q)continue;if(pieceColor(q)===color)return {ok:false};captures.push([pr,pc]);if(captures.length>1)return {ok:false};}return {ok:true,captures};}
+function possibleMoves(r,c){const p=board[r]?.[c],color=pieceColor(p);if(!p)return [];const out=[];for(let rr=0;rr<SIZE;rr++)for(let cc=0;cc<SIZE;cc++){const v=validateMove([r,c],[rr,cc],color);if(v.ok)out.push({r:rr,c:cc,captures:v.captures});}return out;}
+const el=id=>document.getElementById(id);
+function setStatus(s){el("status").textContent=s;}function say(s){el("message").textContent=s;}
+function beep(win=false){if(!soundOn)return;try{const a=new(window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type="sine";o.frequency.value=win?780:440;g.gain.value=.08;o.start();o.stop(a.currentTime+.15);o.onended=()=>a.close();}catch(e){}}
+function render(){const root=el("board");root.replaceChildren();for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){const cell=document.createElement("div");cell.className="cell "+((r+c)%2?"dark":"light");if(selected&&selected[0]===r&&selected[1]===c)cell.classList.add("selected");if(hints.some(m=>m.r===r&&m.c===c))cell.classList.add("hint");const p=board[r]?.[c];if(p){const token=document.createElement("div");token.className="piece "+pieceColor(p)+(isKing(p)?" king":"");cell.appendChild(token);}cell.addEventListener("click",()=>clickCell(r,c));root.appendChild(cell);}}
+function updateStatus(){if(winner){setStatus("🏆 "+(winner==="red"?"Merah":"Hitam")+" menang! Tahniah!");return;}if(mode==="online"){setStatus("Bilik "+roomCode+" • "+(myColor==="red"?"Merah":"Hitam")+" • Giliran "+(turn==="red"?"Merah":"Hitam"));return;}setStatus("Giliran "+(turn==="red"?"Merah":"Hitam"));}
+function setMode(m){mode=m;selected=null;hints=[];winner=null;clearInterval(polling);polling=null;el("onlinePanel").classList.toggle("hidden",m!=="online");board=initialBoard();turn="red";roomCode="";playerId="";myColor="";el("roomInfo").textContent="";say(m==="online"?"Cipta bilik atau sertai bilik menggunakan kod.":"Pilih buah untuk mula bermain.");if(m==="online")setStatus("Menunggu bilik permainan");else updateStatus();render();}
+function clickCell(r,c){if(!board.length||winner)return;if(mode==="online"&&(!playerId||turn!==myColor)){say("Tunggu giliran anda atau sertai bilik dahulu.");return;}if(mode==="computer"&&turn==="black")return;const piece=board[r][c],color=mode==="online"?myColor:turn;if(selected){const found=hints.find(m=>m.r===r&&m.c===c);if(found){const from=selected;selected=null;hints=[];if(mode==="online")sendMove(from,[r,c]);else{applyMove(from,[r,c],found.captures);if(mode==="computer"&&!winner&&turn==="black")setTimeout(computerMove,450);}return;}}if(piece&&pieceColor(piece)===color){selected=[r,c];hints=possibleMoves(r,c);say(hints.length?"Pilih petak bertanda hijau.":"Buah ini tiada langkah yang sah.");}else{selected=null;hints=[];}render();}
+function applyMove(from,to,captures){const [r,c]=from,[rr,cc]=to;let piece=board[r][c],color=pieceColor(piece);board[r][c]=null;for(const [a,b]of captures)board[a][b]=null;if(!isKing(piece)&&(rr===0||rr===SIZE-1))piece=color+"-king";board[rr][cc]=piece;turn=color==="red"?"black":"red";selected=null;hints=[];beep();let available=false;for(let a=0;a<SIZE&&!available;a++)for(let b=0;b<SIZE&&!available;b++)if(pieceColor(board[a][b])===turn&&possibleMoves(a,b).length)available=true;if(!available){winner=color;beep(true);say("Hebat! Tahniah menang!");}else say("Langkah berjaya.");updateStatus();render();}
+function computerMove(){if(mode!=="computer"||turn!=="black"||winner)return;const all=[];for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++)if(pieceColor(board[r][c])==="black")for(const m of possibleMoves(r,c))all.push({from:[r,c],to:[m.r,m.c],captures:m.captures});if(!all.length){winner="red";updateStatus();render();return;}const captures=all.filter(m=>m.captures.length),pool=captures.length?captures:all,m=pool[Math.floor(Math.random()*pool.length)];applyMove(m.from,m.to,m.captures);}
+function newGame(){if(mode==="online"&&playerId){api("reset",{playerId}).then(s=>{board=s.board;turn=s.turn;winner=null;selected=null;hints=[];updateStatus();render();say("Permainan baharu bermula.");}).catch(e=>say(e.message));}else setMode(mode);}
+function toggleSound(){soundOn=!soundOn;el("soundBtn").textContent=soundOn?"🔊 Bunyi ON":"🔇 Bunyi OFF";if(soundOn)beep();}
+function makeCode(){return Math.random().toString(36).slice(2,8).toUpperCase();}
+async function api(action,data){const url=API+"/room/"+encodeURIComponent(roomCode)+"/"+action,opts=data===undefined?{}:{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)},res=await fetch(url,opts),result=await res.json();if(!res.ok)throw Error(result.error||"Sambungan gagal");return result;}
+async function enterRoom(code){clearInterval(polling);polling=null;roomCode=code;try{const s=await api("join",{});playerId=s.playerId;myColor=s.color;board=s.board;turn=s.turn;winner=s.winner;el("roomInfo").textContent="Kod: "+roomCode+" • Anda pemain "+(myColor==="red"?"Merah":"Hitam");selected=null;hints=[];updateStatus();render();say("Bilik disertai. Kongsi kod kepada rakan.");polling=setInterval(refreshRoom,2000);}catch(e){playerId="";say(e.message);}}
+function createRoom(){setMode("online");enterRoom(makeCode());}
+function joinRoom(){const code=el("roomInput").value.trim().toUpperCase();if(!/^[A-Z0-9-]{1,40}$/.test(code)){say("Masukkan kod bilik yang sah.");return;}enterRoom(code);}
+async function refreshRoom(){if(!playerId)return;try{const s=await api("state");board=s.board;turn=s.turn;winner=s.winner;selected=null;hints=[];updateStatus();render();if(s.players<2)say("Menunggu pemain kedua...");else if(winner)say("Permainan tamat. Tahniah!");else say("Dua pemain telah bersambung.");}catch(e){say("Sambungan bilik terganggu: "+e.message);}}
+async function sendMove(from,to){try{const s=await api("move",{playerId,from,to});board=s.board;turn=s.turn;winner=s.winner;beep(!!winner);updateStatus();render();say(winner?"Tahniah menang!":"Langkah berjaya.");}catch(e){say(e.message);refreshRoom();}}
+async function shareRoom(){if(!roomCode){say("Cipta atau sertai bilik dahulu.");return;}const link=location.origin+location.pathname+"?room="+encodeURIComponent(roomCode);try{if(navigator.share)await navigator.share({title:"Dam Haji Online",text:"Sertai bilik "+roomCode,url:link});else if(navigator.clipboard){await navigator.clipboard.writeText(link);say("Pautan bilik telah disalin.");}else say("Kongsi kod bilik: "+roomCode);}catch(e){say("Kod bilik: "+roomCode);}}
+setMode("local");const sharedRoom=new URLSearchParams(location.search).get("room");if(sharedRoom){setMode("online");el("roomInput").value=sharedRoom.toUpperCase();say("Tekan Sertai Bilik untuk bermain bersama rakan.");}
+</script></body></html>
