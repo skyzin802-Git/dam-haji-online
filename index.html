@@ -471,8 +471,10 @@ refreshRoom = async function() {
     board = s.board;
     turn = s.turn;
     winner = s.winner;
-    selected = null;
-    hints = [];
+    if (turn !== myColor || winner) {
+  selected = null;
+  hints = [];
+}
 
     updateStatus();
     render();
