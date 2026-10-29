@@ -21,8 +21,12 @@ const clone = b => b.map(row=>row.slice());
 function capturesFrom(b,r,c) {
   const piece=b[r][c], side=who(piece), found=[];
 
-  for(const [dr,dc] of DIAG) {
-    if(king(piece)) {
+  for(const [dr,dc] of DIAG) 
+  {   
+    if(!king(piece) && dr !==
+      (side==='red' ? -1 : 1 ))
+    continue;
+     if (king(piece))  {
       let x=r+dr,y=c+dc,enemy=null;
 
       while(inB(x,y)) {
@@ -127,16 +131,15 @@ function legalMoves(b,color) {
             });
         }
       }
-    }
+    } 
+  } 
+  return [...cap, ...all];
+
+  
   }
 
-  if(cap.length) {
-    const max=Math.max(...cap.map(m=>m.taken.length));
-    return cap.filter(m=>m.taken.length===max);
-  }
 
-  return all;
-}
+
 
 function playMove(b,m) {
   const nb=clone(b);
@@ -280,7 +283,7 @@ export class GameRoom extends DurableObject {
 
       if(!m)
         return json({
-          error:'Langkah tidak sah. Wajib makan bilangan maksimum.'
+          error:'Langkah tidak sah mengikut peraturan permainan.'
         },400);
 
       this.board=playMove(this.board,m);
