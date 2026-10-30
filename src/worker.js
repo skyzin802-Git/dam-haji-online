@@ -309,6 +309,13 @@ export default {
   async fetch(req,env) {
     const url=new URL(req.url);
 
+    if (['/premium/apply','/premium/status'].includes(url.pathname)) {
+      if (req.method !== 'POST') return json({error:'Kaedah tidak dibenarkan'},405);
+      if (!env.PREMIUM_SERVICE) return json({error:'Sambungan Premium belum dikonfigurasi'},503);
+      const target='https://dam-haji-premium-api.danaumas802.workers.dev'+url.pathname.slice('/premium'.length);
+      return env.PREMIUM_SERVICE.fetch(new Request(target,req));
+    }
+
     const match=url.pathname.match(
       /^\/room\/([a-zA-Z0-9-]{1,40})\/(join|move|state|reset)$/
     );
@@ -318,6 +325,30 @@ export default {
 
     if(!env.GAME_ROOMS)
       return json({error:'GAME_ROOMS belum tersedia'},503);
+
+    // Premium RM5: semak kelulusan HQ di pelayan sebelum menyertai bilik.
+    // Binding PREMIUM_SERVICE mesti dipasang sebelum deploy versi calon.
+    if (match[2] === 'join' && req.method === 'POST') {
+      let data;
+      try { data = await req.clone().json(); }
+      catch { return json({error:'Data permintaan tidak sah'},400); }
+      const applicationId=String(data?.applicationId||'');
+      const accessKey=String(data?.accessKey||'');
+      if (!/^DH-[A-F0-9]{12}$/.test(applicationId) || !/^[a-f0-9]{48}$/.test(accessKey))
+        return json({error:'Sila masukkan ID permohonan dan kunci akses Premium.'},403);
+      if (!env.PREMIUM_SERVICE)
+        return json({error:'Sambungan Premium belum dikonfigurasi'},503);
+      try {
+        const check=await env.PREMIUM_SERVICE.fetch('https://dam-haji-premium-api.danaumas802.workers.dev/status',{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({applicationId,accessKey})
+        });
+        if (!check.ok) return json({error:'Pengesahan Premium gagal.'},403);
+        const result=await check.json();
+        if (result.paymentStatus!=='approved' || result.premiumActive!==true)
+          return json({error:'Premium RM5 belum diluluskan HQ.'},403);
+      } catch { return json({error:'Sistem pengesahan Premium tidak tersedia.'},503); }
+    }
 
     const id=env.GAME_ROOMS.idFromName(match[1]);
     return env.GAME_ROOMS.get(id).fetch(req);
