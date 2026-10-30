@@ -20,6 +20,7 @@
 <script>
 "use strict";
 const API="https://dam-haji-online.danaumas802.workers.dev";
+  const PREMIUM_API="https://dam-haji-premium-api.danaumas802.workers.dev";
 const SIZE=10;
 let mode="local",board=[],turn="red",selected=null,hints=[],winner=null,roomCode="",playerId="",myColor="",polling=null,soundOn=true;
 function initialBoard(){return Array.from({length:SIZE},(_,r)=>Array.from({length:SIZE},(_,c)=>(r+c)%2!==1?null:r<4?"black":r>5?"red":null));}
