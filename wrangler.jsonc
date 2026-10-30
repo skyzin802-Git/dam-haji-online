@@ -15,7 +15,13 @@
       }
     ]
   },
-  "migrations": [
+"services": [
+  {
+    "binding": "PREMIUM_SERVICE",
+    "service": "dam-haji-premium-api"
+  }
+],
+  "migrations": [   
     {
       "tag": "v1",
       "new_sqlite_classes": ["GameRoom"]
