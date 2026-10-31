@@ -21,7 +21,8 @@ const clone = b => b.map(row=>row.slice());
 function capturesFrom(b,r,c) {
   const piece=b[r][c], side=who(piece), found=[];
 
-  for(const [dr,dc] of DIAG) {
+  for(const [dr,dc] of DIAG) {  
+   if(!king(piece) && dr !== (side==='red' ? -1 : 1)) continue; 
     if(king(piece)) {
       let x=r+dr,y=c+dc,enemy=null;
 
