@@ -16,7 +16,48 @@
 <section id="onlinePanel" class="panel hidden"><h3>Bilik Permainan Online</h3><button onclick="createRoom()">Cipta Bilik</button><br><input id="roomInput" placeholder="KOD BILIK" maxlength="40"><button onclick="joinRoom()">Sertai Bilik</button><p id="roomInfo" class="small"></p><button onclick="shareRoom()">Kongsi Kod Bilik</button></section>
 <section class="panel"><div id="status">Pilih cara bermain</div><p id="message"></p></section><div id="board"></div>
 <section class="panel"><button onclick="newGame()">🔄 Permainan Baharu</button><button onclick="toggleSound()" id="soundBtn">🔊 Bunyi ON</button></section>
-<section class="panel small"><strong>Peraturan Dam Haji</strong><p>Buah biasa bergerak dan makan secara menyerong ke hadapan. Buah Haji boleh bergerak jauh secara menyerong dan menegak. Makan tidak diwajibkan.</p></section></main><footer>DAM HAJI DIGITAL • 10×10</footer>
+<section class="panel" style="font-size:10px;text-align:left;line-height:1.6">
+  <h3 style="text-align:center">PERATURAN DAM HAJI</h3>
+
+  <p><b>1. Buah Dam Biasa</b><br>
+  Bergerak menyerong ke hadapan satu petak.
+  Makan buah lawan dengan melompat menyerong ke hadapan.
+  Tidak boleh bergerak atau makan ke belakang.
+  Apabila sampai ke barisan terakhir lawan, buah menjadi Buah Haji.</p>
+
+  <p><b>2. Buah Haji</b><br>
+  Boleh bergerak dan makan secara menyerong ke hadapan
+  atau belakang, termasuk jarak jauh.
+  Tidak boleh bergerak atau makan secara menegak
+  atau mendatar.</p>
+
+  <p><b>3. Peraturan Makan</b><br>
+  Pemain wajib makan apabila terdapat peluang.
+  Jika terdapat beberapa pilihan, pemain mesti memilih
+  gerakan yang memakan bilangan buah lawan paling banyak.
+  Makan berturut-turut dibenarkan mengikut peraturan
+  setiap jenis buah.</p>
+
+  <h3 style="text-align:center">CARA BERMAIN 2 PERANTI ONLINE</h3>
+
+  <p><b>Langkah 1 — Telefon 1</b><br>
+  Buka permainan dan tekan 2 Peranti Online.
+  Kod bilik dijana secara automatik.</p>
+
+  <p><b>Langkah 2 — Kongsi Jemputan</b><br>
+  Tekan Kongsi Kod Bilik dan hantar jemputan
+  melalui WhatsApp kepada pemain kedua.</p>
+
+  <p><b>Langkah 3 — Telefon 2</b><br>
+  Buka pautan jemputan WhatsApp dan sertai bilik permainan.</p>
+
+  <p><b>Langkah 4 — Mulakan Permainan</b><br>
+  Apabila mesej "Dua pemain telah bersambung" muncul,
+  pemain Merah bergerak dahulu, diikuti pemain Hitam
+  secara bergilir-gilir.</p>
+</section>
+</main>
+<footer>DAM HAJI DIGITAL • 10×10</footer>
 <script>
 "use strict";
 const API="https://dam-haji-online.danaumas802.workers.dev";
