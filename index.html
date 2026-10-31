@@ -92,7 +92,8 @@ function capturePaths(b,r,c) {
   const color = pieceColor(p);
   const out = [];
 
-  for (const [dr,dc] of directions) {
+  for (const [dr,dc] of directions) { 
+    if (!isKing(p) && dr !== (color === "red" ? -1 : 1)) continue;
 
     if (isKing(p)) {
       let x = r+dr, y = c+dc;
